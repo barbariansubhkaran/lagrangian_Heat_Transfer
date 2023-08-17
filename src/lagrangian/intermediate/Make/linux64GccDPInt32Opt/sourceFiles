@@ -1,0 +1,7 @@
+SOURCE = \
+$(THERMOPARCEL)/defineBasicMyThermoParcel.C \
+$(REACTINGPARCEL)/defineBasicMyReactingParcel.C \
+$(REACTINGHETERMPPARCEL)/defineBasicMyHeterogeneousReactingParcel.C \
+$(REACTINGHETERMPPARCEL)/makeBasicMyHeterogeneousReactingParcelSubmodels.C \
+
+# sources

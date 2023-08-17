@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+rm -rf rectangularDuct0
+rm -rf rectangularDuct1
+rm -rf rectangularDuct2
+rm -rf rectangularDuct3
+rm -rf rectangularDuct4
+rm -f *.png
+rm -f *.eps
+rm -f *.csv
+#------------------------------------------------------------------------------

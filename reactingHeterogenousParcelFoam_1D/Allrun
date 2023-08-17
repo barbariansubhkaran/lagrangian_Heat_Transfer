@@ -1,0 +1,169 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf rectangularDuct rectangularDuct0
+cp -rf changeDictionaryDict rectangularDuct0/system
+cd rectangularDuct0
+chmod a+w system/*
+chmod a+w constant/*
+chmod a+w 0/*
+blockMesh
+changeDictionary
+
+foamDictionary constant/turbulenceProperties -entry RAS.turbulence -set off
+
+foamDictionary system/blockMeshDict -entry scale -set 0.1
+foamDictionary system/blockMeshDict -entry vertices -set '(
+    (0 0 0)
+    (40 0 0)
+    (40 10 0)
+    (0 10 0)
+    (0 0 10)
+    (40 0 10)
+    (40 10 10)
+    (0 10 10)
+
+    (45 0 0)        // 8
+    (45 10 0)       // 9
+    (45 0 10)       // 10
+    (45 10 10)      // 11
+
+    (90 0 0)        // 12
+    (90 10 0)       // 13
+    (90 0 10)       // 14
+    (90 10 10)      // 15
+)'
+foamDictionary system/blockMeshDict -entry blocks -set '(
+hex (0 1 2 3 4 5 6 7) (40 1 1) simpleGrading (1 1 1)
+hex (1 8 9 2 5 10 11 6) (50 1 1) simpleGrading (1 1 1)
+hex (8 12 13 9 10 14 15 11) (45 1 1) simpleGrading (1 1 1))'
+
+foamDictionary system/blockMeshDict -entry boundary -set '
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (13 15 14 12)
+        );
+    }
+    walls
+    {
+        type empty;
+        faces
+        (
+            (3 7 6 2)(2 6 11 9)(9 11 15 13)
+            (1 5 4 0)(8 10 5 1)(12 14 10 8)
+            (0 3 2 1)(1 2 9 8)(8 9 13 12)
+            (4 5 6 7)(5 10 11 6)(10 14 15 11)
+        );
+    }
+)'
+
+foamDictionary system/controlDict -entry writeFormat -set ascii
+foamDictionary system/controlDict -entry endTime -set 1500
+foamDictionary system/controlDict -entry DebugSwitches.RanzMarshall -set 0
+foamDictionary system/controlDict -entry DebugSwitches.Rowe -set 0
+
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,U)' -set 'Gauss linearUpwind grad(U)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phid,p)' -set 'Gauss linearUpwind grad(p)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,K)' -set 'Gauss linearUpwind grad(K)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,h)' -set 'Gauss linearUpwind grad(h)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,k)' -set 'Gauss linearUpwind grad(k)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,epsilon)' -set 'Gauss linearUpwind grad(epsilon)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,omega)' -set 'Gauss linearUpwind grad(omega)'
+foamDictionary system/fvSchemes -entry 'divSchemes.div(phi,Yi_h)' -set 'Gauss upwind grad(Yi_h)'
+
+# Initial magnetite particle density = 5100 * (1 - porosity pellet) = 5140 * (1 - 0.3) = 3598
+foamDictionary constant/reactingCloud1Properties -entry constantProperties.rho0 -set 3600
+foamDictionary constant/reactingCloud1Properties -entry constantProperties.Cp0 -set 649
+foamDictionary constant/reactingCloud1Properties -entry constantProperties.internalHeatOfReaction -set false
+foamDictionary constant/reactingCloud1Properties -entry subModels.dispersionModel -set none
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.type -set manualInjection
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.patch -remove
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.duration -remove
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.flowRateProfile -remove
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.parcelsPerSecond -remove
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.positionsFile -set '"reactingCloud1Positions"'
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.U0 -set '(0 0 0)'
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.sizeDistribution.fixedValueDistribution.value -set 0.012
+# massTotal = V * rho * (1 - void bed) = 0.5 * 3600 * (1 - 0.4) = 1.08e3
+foamDictionary constant/reactingCloud1Properties -entry subModels.injectionModels.model1.massTotal -set 1.08e3
+foamDictionary constant/reactingCloud1Properties -entry subModels.MUCSheterogeneousRateCoeffs.epsilon -set 0.4
+foamDictionary constant/reactingCloud1Properties -entry subModels.singleMixtureFractionCoeffs.phases -set '( gas { } liquid { } solid { Fe3O4 0 ; Fe2O3 1 ; } )'
+
+python ../createReactingCloud1Positions.py
+cp -f constant/reactingCloud1Properties constant/reactingCloud2Properties
+cp -f constant/reactingCloud1Properties constant/reactingCloud3Properties
+foamDictionary constant/reactingCloud2Properties -entry subModels.injectionModels.model1.massTotal -set 0
+foamDictionary constant/reactingCloud3Properties -entry subModels.injectionModels.model1.massTotal -set 0
+
+cd ..
+cp -rf rectangularDuct0 rectangularDuct1
+cp -rf rectangularDuct0 rectangularDuct2
+
+
+cd rectangularDuct1
+runApplication blockMesh
+runApplication $(getApplication)
+python ../runLagrangian.py
+cp -rf lagrangian.csv ../lagrangian1.csv
+runApplication foamLog log.reactingHeterogenousParcelFoam
+
+cd ../rectangularDuct2
+foamDictionary constant/reactingCloud1Properties -entry subModels.heatTransferModel -set Rowe
+foamDictionary constant/reactingCloud1Properties -entry subModels.RoweCoeffs -set '{vo 0.3; BirdCorrection  off;}'
+runApplication blockMesh
+runApplication $(getApplication)
+python ../runLagrangian.py
+cp -rf lagrangian.csv ../lagrangian2.csv
+runApplication foamLog log.reactingHeterogenousParcelFoam
+
+cd ..
+python plot_lagrangian_layers_T.py
+
+
+cp -rf rectangularDuct0 rectangularDuct3
+cd rectangularDuct3
+foamDictionary constant/reactingCloud1Properties -entry subModels.heatTransferModel -set Rowe
+foamDictionary constant/reactingCloud1Properties -entry subModels.RoweCoeffs -set '{vo 0.3; BirdCorrection  off;}'
+foamDictionary constant/reactingCloud1Properties -entry subModels.singleMixtureFractionCoeffs.phases -set '( gas { } liquid { } solid { Fe3O4 1 ; Fe2O3 0 ; } )'
+foamDictionary system/controlDict -entry DebugSwitches.basicMyThermoParcel -set 0
+foamDictionary constant/reactingCloud1Properties -entry constantProperties.internalHeatOfReaction -set false
+runApplication blockMesh
+runApplication $(getApplication)
+python ../runLagrangian.py
+cp -rf lagrangian.csv ../lagrangian3.csv
+runApplication foamLog log.reactingHeterogenousParcelFoam
+
+
+cd ..
+cp -rf rectangularDuct0 rectangularDuct4
+cd rectangularDuct4
+foamDictionary constant/reactingCloud1Properties -entry subModels.heatTransferModel -set Rowe
+foamDictionary constant/reactingCloud1Properties -entry subModels.RoweCoeffs -set '{vo 0.3; BirdCorrection  off;}'
+foamDictionary constant/reactingCloud1Properties -entry subModels.singleMixtureFractionCoeffs.phases -set '( gas { } liquid { } solid { Fe3O4 1 ; Fe2O3 0 ; } )'
+foamDictionary system/controlDict -entry DebugSwitches.basicMyThermoParcel -set 0
+foamDictionary constant/reactingCloud1Properties -entry constantProperties.internalHeatOfReaction -set true
+runApplication blockMesh
+runApplication $(getApplication)
+python ../runLagrangian.py
+cp -rf lagrangian.csv ../lagrangian4.csv
+runApplication foamLog log.reactingHeterogenousParcelFoam
+
+cd ..
+python plot_lagrangian_layers_T_chem.py
+#------------------------------------------------------------------------------
+

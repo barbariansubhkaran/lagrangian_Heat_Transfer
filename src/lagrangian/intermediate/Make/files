@@ -1,0 +1,21 @@
+PARCELS=parcels
+BASEPARCELS=$(PARCELS)/baseClasses
+DERIVEDPARCELS=$(PARCELS)/derived
+
+CLOUDS=clouds
+BASECLOUDS=$(CLOUDS)/baseClasses
+DERIVEDCLOUDS=$(CLOUDS)/derived
+
+/* thermo parcel sub-models */
+THERMOPARCEL=$(DERIVEDPARCELS)/basicMyThermoParcel
+$(THERMOPARCEL)/defineBasicMyThermoParcel.C
+
+/* reacting parcel sub-models */
+REACTINGPARCEL=$(DERIVEDPARCELS)/basicMyReactingParcel
+$(REACTINGPARCEL)/defineBasicMyReactingParcel.C
+
+/* heterogeous reacting parcel sub-models */
+REACTINGHETERMPPARCEL=$(DERIVEDPARCELS)/basicMyHeterogeneousReactingParcel
+$(REACTINGHETERMPPARCEL)/defineBasicMyHeterogeneousReactingParcel.C
+$(REACTINGHETERMPPARCEL)/makeBasicMyHeterogeneousReactingParcelSubmodels.C
+LIB = $(FOAM_USER_LIBBIN)/libmylagrangianIntermediate

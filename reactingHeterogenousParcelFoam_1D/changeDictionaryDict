@@ -1,0 +1,142 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+U
+{
+    internalField   uniform (3.2 0 0);
+    boundaryField
+    {
+        inlet
+        {
+            value       uniform (3.2 0 0);
+        }
+	walls
+	{
+	    type	empty;
+	}
+    }
+}
+
+T
+{
+    internalField   uniform 573;
+    boundaryField
+    {
+        inlet
+        {
+            value       uniform 573;
+        }
+        outlet
+        {
+            inletValue      uniform 573;
+        }
+	walls
+        {
+            type        empty;
+        }
+    }
+}
+
+N2
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+O2
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+alphat
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+k
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+nut
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+omega
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+p
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+p_rgh
+{
+    boundaryField
+    {
+        walls
+        {
+            type        empty;
+        }
+    }
+}
+
+// ************************************************************************* //
+
